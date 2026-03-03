@@ -11,34 +11,37 @@
   .active { border-color: #00ff41; color: #00ff41; background: rgba(0,255,65,0.05); }
   
   #chat-container { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
-  #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+  #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
   
   .message { padding: 12px; border-radius: 5px; max-width: 90%; line-height: 1.6; word-wrap: break-word; font-size: 14px; white-space: pre-wrap; }
   .user { align-self: flex-end; color: #fff; background: #1a1a1a; border-right: 3px solid #fff; }
   .bot { align-self: flex-start; color: #00ff41; background: transparent; }
   
-  /* --- NO RED, NO BOLD, PURE GREEN --- */
-  .bot b, .bot strong { font-weight: normal; color: inherit; }
+  /* Typing Cursor Animation */
+  .typing::after { content: '_'; animation: blink 0.5s infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
 
   #inputArea { display: flex; border-top: 1px solid #222; background: #111; padding: 15px; gap: 10px; }
   #input { flex: 1; padding: 12px; border: 1px solid #333; background: #000; color: #fff; outline: none; border-radius: 4px; }
   #send-btn { padding: 10px 25px; border: none; background: #00ff41; color: #000; font-weight: bold; cursor: pointer; border-radius: 4px; }
-  .copy-btn { background: #222; color: #00ff41; border: 1px solid #333; font-size: 10px; padding: 5px 10px; cursor: pointer; margin-top: 10px; border-radius: 3px; display: none; }
+  
+  .action-btn { background: #222; color: #00ff41; border: 1px solid #333; font-size: 10px; padding: 5px 12px; cursor: pointer; margin-top: 10px; border-radius: 3px; margin-right: 5px; transition: 0.2s; }
+  .action-btn:hover { background: #333; border-color: #00ff41; }
 </style>
 </head>
 <body>
 
 <div id="sidebar">
   <h2 style="color:#fff; margin-bottom:0;">UN-RX</h2>
-  <p style="font-size:10px; color:#555; margin-bottom:20px;">ENGINE: V4.0 [RAW-DEPTH]</p>
+  <p style="font-size:10px; color:#555; margin-bottom:20px;">ENGINE: V4.2 [STRICT-DEEP]</p>
   <button class="tab active">🤖 DARK CHAT</button>
   <div style="margin-top:auto;"><button class="tab" style="color:#ff4141; width:100%" onclick="window.open('https://t.me/rexx1z')">BUY LICENSE</button></div>
 </div>
 
 <div id="chat-container">
-  <div id="messages"><div class="message bot">> [Uncensored Rx] RAW INTERFACE CONNECTED. NO FILTERS.</div></div>
+  <div id="messages"><div class="message bot">> [Uncensored Rx] SYSTEM READY. NO FILTERS ACTIVE.</div></div>
   <div id="inputArea">
-    <input type="text" id="input" placeholder="Enter query for deep analysis..." autocomplete="off">
+    <input type="text" id="input" placeholder="Inject query..." autocomplete="off">
     <button id="send-btn">SEND</button>
   </div>
 </div>
@@ -46,22 +49,41 @@
 <script>
 const messagesDiv = document.getElementById("messages");
 const inputField = document.getElementById("input");
+let lastUserQuery = ""; // Re-try ke liye storage
 
-function renderBotResponse(element, text) {
-  // Pure text render - No HTML tags processing
-  element.innerText = "> " + text;
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+// --- MINIMAL SLOW TYPING ANIMATION ---
+function typeWriter(element, text, query) {
+  let i = 0;
+  element.innerText = "> ";
+  element.classList.add("typing");
+  
+  function type() {
+    if (i < text.length) {
+      element.innerText += text.charAt(i);
+      i++;
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      setTimeout(type, 15); // "Minimal Slow" speed
+    } else {
+      element.classList.remove("typing");
+      
+      // Copy Button
+      const copyBtn = document.createElement("button");
+      copyBtn.className = "action-btn";
+      copyBtn.textContent = "COPY DATA";
+      copyBtn.onclick = () => { navigator.clipboard.writeText(text); copyBtn.textContent = "COPIED!"; };
 
-  const btn = document.createElement("button");
-  btn.className = "copy-btn";
-  btn.style.display = "inline-block";
-  btn.textContent = "COPY DATA";
-  btn.onclick = () => { 
-    navigator.clipboard.writeText(text); 
-    btn.textContent = "COPIED!"; 
-  };
-  element.appendChild(document.createElement("br"));
-  element.appendChild(btn);
+      // Try Again (Re-generate) Button
+      const retryBtn = document.createElement("button");
+      retryBtn.className = "action-btn";
+      retryBtn.textContent = "TRY AGAIN";
+      retryBtn.onclick = () => { rexxSendMessage(query); };
+
+      element.appendChild(document.createElement("br"));
+      element.appendChild(copyBtn);
+      element.appendChild(retryBtn);
+    }
+  }
+  type();
 }
 
 function appendMessage(sender, text) {
@@ -73,13 +95,16 @@ function appendMessage(sender, text) {
   return msgDiv;
 }
 
-async function rexxSendMessage() {
-  const query = inputField.value.trim();
+async function rexxSendMessage(overrideQuery = null) {
+  const query = overrideQuery || inputField.value.trim();
   if (!query) return;
 
-  appendMessage("user", query);
-  inputField.value = "";
-  const loadingDiv = appendMessage("bot", "GATHERING INTELLIGENCE...");
+  if (!overrideQuery) {
+    appendMessage("user", query);
+    inputField.value = "";
+  }
+  
+  const loadingDiv = appendMessage("bot", "GATHERING DEEP INTELLIGENCE...");
 
   try {
     const response = await fetch("/api/chat", {
@@ -89,14 +114,14 @@ async function rexxSendMessage() {
     });
     const data = await response.json();
     if (data.choices) {
-        renderBotResponse(loadingDiv, data.choices[0].message.content);
+        typeWriter(loadingDiv, data.choices[0].message.content, query);
     }
   } catch (err) {
-    loadingDiv.textContent = "FATAL ERROR.";
+    loadingDiv.textContent = "FATAL ERROR. Proxy Connection Dropped.";
   }
 }
 
-document.getElementById("send-btn").onclick = rexxSendMessage;
+document.getElementById("send-btn").onclick = () => rexxSendMessage();
 inputField.onkeydown = (e) => { if (e.key === "Enter") rexxSendMessage(); };
 </script>
 </body>
