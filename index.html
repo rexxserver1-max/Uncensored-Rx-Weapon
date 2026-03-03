@@ -1,0 +1,19 @@
+// index.html ke script tag me ye fetch wala logic dalo
+async function rexxSendMessage() {
+  const query = inputField.value.trim();
+  if (!query) return;
+  appendMessage("user", query);
+  inputField.value = "";
+  const loadingDiv = appendMessage("bot", "INJECTING ENGINE...");
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: query })
+    });
+    const data = await response.json();
+    loadingDiv.textContent = data.choices ? data.choices[0].message.content : (data.error || "Error");
+  } catch (err) {
+    loadingDiv.textContent = "CONNECTION FAILED.";
+  }
+}
