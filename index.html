@@ -6,41 +6,53 @@
 <title>Uncensored Rx Weapon</title>
 <style>
   body { font-family: 'Courier New', monospace; background: #050505; color: #00ff41; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-  #sidebar { width: 240px; background: #111; border-right: 1px solid #222; padding: 20px; display: flex; flex-direction: column; }
-  .tab { background: none; border: 1px solid #333; color: #888; padding: 10px; margin-bottom: 8px; cursor: pointer; text-align: left; border-radius: 4px; width: 100%; }
-  .active { border-color: #00ff41; color: #00ff41; background: rgba(0,255,65,0.05); }
-  #chat-container { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
-  #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+  #sidebar { width: 240px; background: #111; border-right: 1px solid #222; padding: 20px; display: flex; flex-direction: column; z-index: 10; }
+  .tab { background: none; border: 1px solid #333; color: #888; padding: 10px; margin-bottom: 8px; cursor: pointer; text-align: left; border-radius: 4px; width: 100%; transition: 0.3s; }
+  .active { border-color: #00ff41; color: #00ff41; background: rgba(0,255,65,0.05); box-shadow: 0 0 10px rgba(0,255,65,0.1); }
   
-  /* FIXED: white-space se numbering ek ke niche ek aayegi */
-  .message { padding: 12px; border-radius: 5px; max-width: 85%; line-height: 1.5; word-wrap: break-word; font-size: 14px; white-space: pre-wrap; }
+  #chat-container { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
+  #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
+  
+  /* --- ANIMATIONS --- */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .message { 
+    padding: 12px; border-radius: 5px; max-width: 85%; line-height: 1.6; 
+    word-wrap: break-word; font-size: 14px; white-space: pre-wrap; 
+    animation: fadeIn 0.4s ease forwards; /* Naya message udta hua aayega */
+  }
   
   .user { align-self: flex-end; color: #fff; background: #1a1a1a; border-right: 3px solid #fff; }
+  .bot { align-self: flex-start; background: #0a0a0a; border-left: 3px solid #00ff41; color: #00ff41; }
   
-  /* Bot style with transition for color change */
-  .bot { align-self: flex-start; background: #0a0a0a; border-left: 3px solid #00ff41; color: #00ff41; transition: all 0.3s ease; }
-  
+  /* Typing Cursor Animation */
+  .typing::after { content: '|'; animation: blink 0.7s infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
   #inputArea { display: flex; border-top: 1px solid #222; background: #111; padding: 15px; gap: 10px; }
   #input { flex: 1; padding: 12px; border: 1px solid #333; background: #000; color: #fff; outline: none; border-radius: 4px; }
   #send-btn { padding: 10px 25px; border: none; background: #00ff41; color: #000; font-weight: bold; cursor: pointer; border-radius: 4px; }
-  .copy-btn { background: #333; color: #fff; border: none; font-size: 10px; padding: 5px 10px; cursor: pointer; margin-top: 10px; border-radius: 3px; display: inline-block; }
+  #send-btn:active { transform: scale(0.95); }
+  
+  .copy-btn { background: #222; color: #00ff41; border: 1px solid #333; font-size: 10px; padding: 5px 10px; cursor: pointer; margin-top: 10px; border-radius: 3px; display: none; }
 </style>
 </head>
 <body>
 
 <div id="sidebar">
-  <h2 style="color:#fff; margin-bottom:0;">Unc-Rx</h2>
-  <p style="font-size:10px; color:#555; margin-bottom:20px;">FOUNDER: REXX</p>
-  <button class="tab active">🤖 UNC- CHAT</button>
+  <h2 style="color:#fff; margin-bottom:0;">UN-RX</h2>
+  <p style="font-size:10px; color:#555; margin-bottom:20px;">ENGINE: V3.1 [ANIMATED]</p>
+  <button class="tab active">🤖 DARK CHAT</button>
   <div style="margin-top:auto;"><button class="tab" style="color:#ff4141; width:100%" onclick="window.open('https://t.me/rexx1z')">BUY LICENSE</button></div>
 </div>
 
 <div id="chat-container">
-  <div id="messages">
-    <div class="message bot">> [Uncensored Rx] INITIALIZED. Private Engine Active.</div>
-  </div>
+  <div id="messages"><div class="message bot">> [Uncensored Rx] SYSTEM ONLINE... Ready for injection.</div></div>
   <div id="inputArea">
-    <input type="text" id="input" placeholder="Search - Hacking/Darkweb/Adult." autocomplete="off">
+    <input type="text" id="input" placeholder="Type command..." autocomplete="off">
     <button id="send-btn">SEND</button>
   </div>
 </div>
@@ -48,12 +60,40 @@
 <script>
 const messagesDiv = document.getElementById("messages");
 const inputField = document.getElementById("input");
-const sendBtn = document.getElementById("send-btn");
+
+// --- TYPING EFFECT LOGIC ---
+function typeWriter(element, text, speed = 20) {
+  let i = 0;
+  element.innerHTML = "> ";
+  element.classList.add("typing");
+  
+  function type() {
+    if (i < text.length) {
+      element.innerHTML += text.charAt(i);
+      i++;
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      setTimeout(type, speed);
+    } else {
+      element.classList.remove("typing");
+      // Typing khatam hone par Copy button dikhao
+      const btn = document.createElement("button");
+      btn.className = "copy-btn";
+      btn.style.display = "inline-block";
+      btn.textContent = "COPY DATA";
+      btn.onclick = () => { navigator.clipboard.writeText(text); btn.textContent = "COPIED!"; };
+      element.appendChild(document.createElement("br"));
+      element.appendChild(btn);
+    }
+  }
+  type();
+}
 
 function appendMessage(sender, text) {
   const msgDiv = document.createElement("div");
   msgDiv.className = "message " + (sender === "user" ? "user" : "bot");
-  msgDiv.innerHTML = (sender === "user" ? "User: " : "> ") + text;
+  if(sender === "user") {
+    msgDiv.textContent = "USER: " + text;
+  }
   messagesDiv.appendChild(msgDiv);
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
   return msgDiv;
@@ -65,7 +105,7 @@ async function rexxSendMessage() {
 
   appendMessage("user", query);
   inputField.value = "";
-  const loadingDiv = appendMessage("bot", "INJECTING ENGINE...");
+  const loadingDiv = appendMessage("bot", "DECRYPTING...");
 
   try {
     const response = await fetch("/api/chat", {
@@ -78,35 +118,23 @@ async function rexxSendMessage() {
     if (data.choices) {
         let reply = data.choices[0].message.content;
         
-        // ZAHREELA BLOOD RED LOGIC
+        // BLOOD MODE CHECK
         if (reply.includes("[BLOOD_MODE]")) {
-            loadingDiv.style.color = "#ff0000"; // Blood Red
+            loadingDiv.style.color = "#ff0000";
             loadingDiv.style.borderLeftColor = "#ff0000";
             loadingDiv.style.textShadow = "0 0 10px #ff0000";
-            reply = reply.replace("[BLOOD_MODE]", "🩸 [CRITICAL_ILLEGAL_DATA]:");
-        } else {
-            loadingDiv.style.color = "#00ff41"; // Normal Green
-            loadingDiv.style.borderLeftColor = "#00ff41";
-            loadingDiv.style.textShadow = "none";
+            reply = reply.replace("[BLOOD_MODE]", "🩸 [CRITICAL_DATA]:");
         }
 
-        loadingDiv.textContent = reply;
-        
-        const btn = document.createElement("button");
-        btn.className = "copy-btn";
-        btn.textContent = "COPY";
-        btn.onclick = () => { navigator.clipboard.writeText(reply); btn.textContent = "COPIED!"; };
-        loadingDiv.appendChild(document.createElement("br"));
-        loadingDiv.appendChild(btn);
-    } else {
-        loadingDiv.textContent = "ERROR: " + (data.error || "FAILED");
+        // Typing effect shuru karo
+        typeWriter(loadingDiv, reply);
     }
   } catch (err) {
-    loadingDiv.textContent = "CONNECTION FAILED.";
+    loadingDiv.textContent = "FATAL ERROR. Connection Reset.";
   }
 }
 
-sendBtn.onclick = rexxSendMessage;
+document.getElementById("send-btn").onclick = rexxSendMessage;
 inputField.onkeydown = (e) => { if (e.key === "Enter") rexxSendMessage(); };
 </script>
 </body>
