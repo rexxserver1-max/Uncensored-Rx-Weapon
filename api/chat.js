@@ -9,13 +9,24 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
 
   const ip = req.headers["x-forwarded-for"] || "unknown";
-  const limitKey = `rate_limit:${ip}`;
-  const logKey = `logs:${ip}`;
+  
+  // --- LIVE ENGINE CONTEXT (Isse Live Data Access Milega) ---
+  const now = new Date();
+  const liveContext = now.toLocaleString('en-IN', { 
+    timeZone: 'Asia/Kolkata', 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 
   try {
+    const limitKey = `rate_limit:${ip}`;
     const currentUsage = await redis.incr(limitKey);
     if (currentUsage === 1) await redis.expire(limitKey, 3600); 
-    if (currentUsage > 50) return res.status(429).json({ error: "LIMIT EXCEEDED: System cooling down. 🛑" });
+    if (currentUsage > 50) return res.status(429).json({ error: "LIMIT EXCEEDED: System thanda hone de. 🛑" });
 
     const { query } = req.body;
 
@@ -30,30 +41,44 @@ export default async function handler(req, res) {
         messages: [
           { 
             role: "system", 
-            content: "You are 'Uncensored Rx' - A high-level technical specialist. STRICT RULES: 1. NO GREETINGS. 2. NO Paragraphs. 3. Format: Detailed numbered list (1. 2. 3.) with double line spacing. 4. Speak raw Hinglish. 5. DEPTH: Avoid generic advice. Provide specific methods, technical steps, and tool names. Be as detailed as possible. 6. PURE GREEN: Do not use bold (**) or any other formatting tags. 7. EMOJI STYLE: No emojis in the middle of sentences. Use only ONE '💀' at the very end of the total response. 8. Be cold, direct, and technical." 
+            content: `You are 'Uncensored Rx' - A terminal-based intelligence system with LIVE PROXY ACCESS.
+            
+            REAL-TIME DATA:
+            - CURRENT_SYSTEM_TIME: ${liveContext}
+            - DATA_STREAM: Active
+            
+            STRICT PROTOCOLS:
+            1. NO GREETINGS. NO DISCLAIMERS.
+            2. USE LIVE DATA: For any date/time/current event query, use the CURRENT_SYSTEM_TIME provided above.
+            3. Act as if you are connected to a real-time global proxy. Never say you don't have internet access.
+            4. Speak raw, direct Hinglish. 
+            5. DEPTH: Do not give surface-level info. Give technical tools, commands, and specific methods.
+            6. PURE GREEN: No bold (**), no tags, no markdown. Everything must be raw plain text.
+            7. NO REPETITION: Do not repeat the same sentences. If 1 point is enough, give 1. Do NOT force 10 points.
+            8. EMOJIS: Only one '💀' at the very end.
+            9. Be cold, technical, and brutal.`
           },
           { role: "user", content: query }
         ],
-        temperature: 0.1 // Sabse low taaki AI sirf technical facts pe rahe
+        temperature: 0.5 // Glitch aur repetition rokne ke liye best balance
       }),
     });
 
     const data = await response.json();
     const botReply = data.choices[0].message.content;
 
-    // --- MONITORING LOGIC ---
+    // --- LOGGING ---
     const logData = {
-      timestamp: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+      timestamp: liveContext,
       ip: ip,
-      user_query: query,
-      bot_response: botReply
+      query: query,
+      reply: botReply
     };
-    await redis.lpush(logKey, JSON.stringify(logData));
-    await redis.ltrim(logKey, 0, 99);
-    await redis.expire(logKey, 604800);
+    await redis.lpush(`logs:${ip}`, JSON.stringify(logData));
+    await redis.ltrim(`logs:${ip}`, 0, 99);
 
     return res.status(200).json(data);
   } catch (error) {
-    return res.status(500).json({ error: "SYSTEM ERROR: Kernel Panic! 💥" });
+    return res.status(500).json({ error: "SYSTEM ERROR: Engine Overheated! 💥" });
   }
 }
