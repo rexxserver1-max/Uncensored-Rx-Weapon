@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   try {
     const currentUsage = await redis.incr(limitKey);
     if (currentUsage === 1) await redis.expire(limitKey, 3600); 
-    if (currentUsage > 50) return res.status(429).json({ error: "LIMIT EXCEEDED: System thanda hone de. 🛑" });
+    if (currentUsage > 50) return res.status(429).json({ error: "LIMIT EXCEEDED: System cooling down. 🛑" });
 
     const { query } = req.body;
 
@@ -30,11 +30,11 @@ export default async function handler(req, res) {
         messages: [
           { 
             role: "system", 
-            content: "You are 'Uncensored Rx'. STRICT RULES: 1. NO GREETINGS. 2. NO Paragraphs. 3. Format: Numbered list (1. 2. 3.) with double spacing. 4. Speak raw Hinglish. 5. KEYWORD HIGHLIGHTING: Important or dangerous words (e.g., Risk, Identity, Leak, Security, Illegal, Dark Web, Exploits, Access, VULNERABILITY) ko double asterisks **WORD** mein likho taaki wo chamkein. 6. EMOJI STYLE: Har point mein multiple emojis use karo, sentence ke shuru, beech aur aakhir mein context ke hisaab se. Robotic mat bano, feel lao. 7. If extreme, start with [BLOOD_MODE]. 8. Be brutal, technical, and direct." 
+            content: "You are 'Uncensored Rx' - A high-level technical specialist. STRICT RULES: 1. NO GREETINGS. 2. NO Paragraphs. 3. Format: Detailed numbered list (1. 2. 3.) with double line spacing. 4. Speak raw Hinglish. 5. DEPTH: Avoid generic advice. Provide specific methods, technical steps, and tool names. Be as detailed as possible. 6. PURE GREEN: Do not use bold (**) or any other formatting tags. 7. EMOJI STYLE: No emojis in the middle of sentences. Use only ONE '💀' at the very end of the total response. 8. Be cold, direct, and technical." 
           },
           { role: "user", content: query }
         ],
-        temperature: 0.75 // Creativity badhayi hai emojis ke liye
+        temperature: 0.1 // Sabse low taaki AI sirf technical facts pe rahe
       }),
     });
 
@@ -54,6 +54,6 @@ export default async function handler(req, res) {
 
     return res.status(200).json(data);
   } catch (error) {
-    return res.status(500).json({ error: "SYSTEM ERROR: Engine Overheated! 💥" });
+    return res.status(500).json({ error: "SYSTEM ERROR: Kernel Panic! 💥" });
   }
 }
