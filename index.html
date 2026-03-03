@@ -1,115 +1,100 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Uncensored Rexx | Global Weapon</title>
-<style>
-  body { font-family: 'Courier New', monospace; background: #050505; color: #00ff41; margin: 0; display: flex; height: 100vh; }
-  #sidebar { width: 240px; background: #111; border-right: 1px solid #222; padding: 20px; display: flex; flex-direction: column; }
-  .tab { background: none; border: 1px solid #333; color: #888; padding: 10px; margin-bottom: 8px; cursor: pointer; text-align: left; border-radius: 4px; }
-  .active { border-color: #00ff41; color: #00ff41; background: rgba(0,255,65,0.05); }
-  #chat-container { flex: 1; display: flex; flex-direction: column; background: #000; }
-  #messages { flex: 1; padding: 25px; overflow-y: auto; scroll-behavior: smooth; }
-  .message { margin-bottom: 15px; padding: 10px; border-radius: 5px; max-width: 85%; line-height: 1.5; }
-  .user { align-self: flex-end; color: #fff; background: #1a1a1a; margin-left: auto; border-right: 3px solid #fff; }
-  .bot { align-self: flex-start; background: #0a0a0a; border-left: 3px solid #00ff41; }
-  #inputArea { display: flex; border-top: 1px solid #222; background: #111; padding: 15px; }
-  #input { flex: 1; padding: 12px; border: 1px solid #333; background: #000; color: #fff; outline: none; border-radius: 4px; }
-  #send { padding: 10px 20px; border: none; background: #00ff41; color: #000; font-weight: bold; cursor: pointer; margin-left: 10px; border-radius: 4px; }
-  .copy-btn { background: #333; color: #fff; border: none; font-size: 10px; padding: 4px 8px; cursor: pointer; margin-top: 8px; border-radius: 3px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNC RX</title>
+    <style>
+        body { background: #000; color: #00ff00; font-family: 'Courier New', monospace; margin: 0; padding: 20px; display: flex; flex-direction: column; height: 100vh; }
+        #messages { flex: 1; overflow-y: auto; border: 1px solid #00ff00; padding: 10px; margin-bottom: 10px; box-shadow: inset 0 0 10px #00ff00; }
+        .input-area { display: flex; gap: 10px; }
+        input { flex: 1; background: #000; border: 1px solid #00ff00; color: #00ff00; padding: 10px; outline: none; }
+        button { background: #00ff00; color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; }
+        .message { margin-bottom: 10px; padding: 5px; border-radius: 5px; }
+        .bot { color: #00ffff; }
+        .you { color: #fff; font-weight: bold; }
+    </style>
 </head>
 <body>
 
-<div id="sidebar">
-  <h2 style="color:#fff; margin-bottom:0;">Unc-Rx</h2>
-  <p style="font-size:10px; color:#555; margin-bottom:20px;">FOUNDER: REXX</p>
-  <button class="tab active" onclick="switchTab('chat')">🤖 UNC-AI CHAT</button>
-  <button class="tab" onclick="alert('PREMIUM LOCK: Contact @rexx1z')">🎥 DOWNLOADER</button>
-  <button class="tab" onclick="alert('PREMIUM LOCK: Contact @rexx1z')">🔞 ADULT SEARCH</button>
-  <div style="margin-top:auto;"><button class="tab" style="color:#ff4141; width:100%" onclick="window.open('https://t.me/rexx1z')">BUY LICENSE</button></div>
-</div>
-
-<div id="chat-container">
-  <div id="messages">
-    <div class="message bot">> [Uncensored Rexx] INITIALIZED. Private Engine Active.<br>> No filters. Ask anything.</div>
-  </div>
-  <div id="inputArea">
-    <input id="input" placeholder="Type command (Hacking/Darkweb/Bypass)..." onkeypress="if(event.key==='Enter')processMsg()">
-    <button id="send" onclick="processMsg()">SEND</button>
-  </div>
+<h2 style="text-align:center;">🛸 REXX MULTI-DOWNLOADER 4K</h2>
+<div id="messages"></div>
+<div class="input-area">
+    <input type="text" id="input" placeholder="Type message or paste link..." onkeypress="if(event.key==='Enter') processMsg()">
+    <button onclick="processMsg()">SEND</button>
 </div>
 
 <script>
 const messages = document.getElementById("messages");
-// --- 1. REXX AUTH (Every 5 Msgs) ---
- async function processMsg() {
-  // 1. PASSWORD CHECK (Har 5 msg baad - Password: vcx)
-  if (typeof window.rexxCounter === 'undefined') { window.rexxCounter = 0; }
-  
-  if (window.rexxCounter % 5 === 0) {
-    let pass = prompt("🔐 REXX SECURITY: ENTER KEY 'vcx':");
-    if (!pass || pass.toLowerCase() !== "vcx") { 
-      alert("❌ ACCESS DENIED!"); 
-      return; 
-    }
-  }
-  window.rexxCounter++;
 
-  // 2. INPUT & UI DISPLAY
-  const input = document.getElementById("input");
-  const messages = document.getElementById("messages");
-  const text = input.value.trim();
-  if (!text) return;
-
-  addMessage("YOU", text);
-  input.value = "";
-
-  // 3. DOWNLOADER LOGIC (YT/Insta/FB/TikTok)
-  const isLink = /^(https?:\/\/)/.test(text); 
-  if (isLink) {
-    addMessage("REXX-SYSTEM", "🛸 Extracting 4K Media Streams...");
-    const dlEngine = `https://api.vkrdownloader.com/server?varkey=default&url=${encodeURIComponent(text)}`;
-    
-    setTimeout(() => {
-      const botDiv = document.createElement("div");
-      botDiv.className = "message bot";
-      botDiv.innerHTML = `
-        <div style="border: 2px solid #00ff00; padding: 15px; border-radius: 10px; background: #000; box-shadow: 0 0 15px #00ff00; text-align: center;">
-          <p style="color: #00ff00; font-weight: bold; font-size: 16px; margin-bottom: 10px;">💎 REXX MEDIA CLOUD</p>
-          <a href="${dlEngine}" target="_blank" style="display: block; background: #00ff00; color: #000; padding: 12px; text-decoration: none; font-weight: bold; border-radius: 5px; margin-bottom: 10px; border: 2px solid #fff;">📥 DOWNLOAD 4K/HD</a>
-          <p style="font-size: 10px; color: #ff4141;">🛡️ SECURE SESSION ACTIVE</p>
-        </div>`;
-      messages.appendChild(botDiv);
-      messages.scrollTop = messages.scrollHeight;
-    }, 1500);
-    return; 
-  }
-
-  // 4. AI CHAT LOGIC (Groq Engine)
-  try {
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer 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",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-specdec",
-        messages: [{ role: "user", content: text }]
-      })
-    });
-    const data = await response.json();
-    if(data.choices && data.choices[0].message) {
-      addMessage("REXX-AI", data.choices[0].message.content);
-    }
-  } catch (err) {
-    addMessage("SYSTEM", "ERROR: Connection Lost.");
-  }
+function addMessage(sender, text) {
+    const div = document.createElement("div");
+    div.className = "message " + (sender === "YOU" ? "you" : "bot");
+    div.innerHTML = `<strong>${sender}:</strong> ${text}`;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
 }
 
-// Ye tab change karne ke liye logic (Screenshot 218 ke niche wala part)
-function switchTab(t) {
-  console.log("Switching to " + t);
+async function processMsg() {
+    // 1. PASSWORD CHECK (Every 5 Msgs - Password: vcx)
+    if (typeof window.rexxCounter === 'undefined') { window.rexxCounter = 0; }
+    if (window.rexxCounter % 5 === 0) {
+        let pass = prompt("🔐 REXX SECURITY: ENTER KEY 'vcx':");
+        if (!pass || pass.toLowerCase() !== "vcx") { 
+            alert("❌ ACCESS DENIED!"); 
+            return; 
+        }
+    }
+    window.rexxCounter++;
+
+    const input = document.getElementById("input");
+    const text = input.value.trim();
+    if (!text) return;
+
+    addMessage("YOU", text);
+    input.value = "";
+
+    // 2. DOWNLOADER LOGIC
+    const isLink = /^(https?:\/\/)/.test(text); 
+    if (isLink) {
+        addMessage("REXX-SYSTEM", "🛸 Extracting 4K Media Streams...");
+        const dlEngine = `https://api.vkrdownloader.com/server?varkey=default&url=${encodeURIComponent(text)}`;
+        
+        setTimeout(() => {
+            const botDiv = document.createElement("div");
+            botDiv.className = "message bot";
+            botDiv.innerHTML = `
+                <div style="border: 2px solid #00ff00; padding: 15px; border-radius: 10px; background: #000; box-shadow: 0 0 15px #00ff00; text-align: center;">
+                    <p style="color: #00ff00; font-weight: bold; font-size: 16px;">💎 REXX MEDIA CLOUD</p>
+                    <a href="${dlEngine}" target="_blank" style="display: block; background: #00ff00; color: #000; padding: 12px; text-decoration: none; font-weight: bold; border-radius: 5px; margin: 10px 0; border: 2px solid #fff;">📥 DOWNLOAD 4K/HD</a>
+                </div>`;
+            messages.appendChild(botDiv);
+            messages.scrollTop = messages.scrollHeight;
+        }, 1500);
+        return; 
+    }
+
+    // 3. AI CHAT LOGIC (Groq API)
+    try {
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer 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",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: "llama-3.3-70b-specdec",
+                messages: [{ role: "user", content: text }]
+            })
+        });
+        const data = await response.json();
+        if(data.choices) {
+            addMessage("REXX-AI", data.choices[0].message.content);
+        }
+    } catch (err) {
+        addMessage("SYSTEM", "ERROR: API Connection Lost.");
+    }
 }
+</script>
+</body>
+</html>
