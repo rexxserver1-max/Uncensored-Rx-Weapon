@@ -13,13 +13,13 @@
   #chat-container { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
   #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
   
-  .message { padding: 12px; border-radius: 5px; max-width: 85%; line-height: 1.6; word-wrap: break-word; font-size: 14px; white-space: pre-wrap; }
+  .message { padding: 12px; border-radius: 5px; max-width: 85%; line-height: 1.6; word-wrap: break-word; font-size: 14px; white-space: pre-wrap; border: none !important; }
   .user { align-self: flex-end; color: #fff; background: #1a1a1a; border-right: 3px solid #fff; }
-  .bot { align-self: flex-start; background: #0a0a0a; border-left: 3px solid #00ff41; color: #00ff41; }
+  .bot { align-self: flex-start; color: #00ff41; background: transparent; }
   
-  /* --- CLEAN RED KEYWORDS (NO GLOW) --- */
+  /* --- STRICT RED KEYWORDS (NO GLOW) --- */
   .bot b, .bot strong { 
-    color: #ff3333 !important; /* Pure Red without glow */
+    color: #ff3333 !important; 
     font-weight: bold;
     text-shadow: none !important; 
   }
@@ -34,15 +34,15 @@
 
 <div id="sidebar">
   <h2 style="color:#fff; margin-bottom:0;">UN-RX</h2>
-  <p style="font-size:10px; color:#555; margin-bottom:20px;">ENGINE: V3.3 [STRICT]</p>
+  <p style="font-size:10px; color:#555; margin-bottom:20px;">ENGINE: V3.4 [FINAL]</p>
   <button class="tab active">🤖 DARK CHAT</button>
   <div style="margin-top:auto;"><button class="tab" style="color:#ff4141; width:100%" onclick="window.open('https://t.me/rexx1z')">BUY LICENSE</button></div>
 </div>
 
 <div id="chat-container">
-  <div id="messages"><div class="message bot">> [Uncensored Rx] SYSTEM READY. No glow. No filters.</div></div>
+  <div id="messages"><div class="message bot">> [Uncensored Rx] SYSTEM READY. Minimal mode active.</div></div>
   <div id="inputArea">
-    <input type="text" id="input" placeholder="Enter command..." autocomplete="off">
+    <input type="text" id="input" placeholder="Type here..." autocomplete="off">
     <button id="send-btn">SEND</button>
   </div>
 </div>
@@ -51,8 +51,8 @@
 const messagesDiv = document.getElementById("messages");
 const inputField = document.getElementById("input");
 
-function typeWriter(element, text) {
-  // Bold words (**) ko HTML <b> mein badalna
+function renderBotResponse(element, text) {
+  // Bold (**) ko <b> mein badalna
   let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
   element.innerHTML = "> " + formattedText;
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
@@ -60,7 +60,7 @@ function typeWriter(element, text) {
   const btn = document.createElement("button");
   btn.className = "copy-btn";
   btn.style.display = "inline-block";
-  btn.textContent = "COPY DATA";
+  btn.textContent = "COPY";
   btn.onclick = () => { 
     navigator.clipboard.writeText(text.replace(/\*\*/g, '')); 
     btn.textContent = "COPIED!"; 
@@ -84,7 +84,7 @@ async function rexxSendMessage() {
 
   appendMessage("user", query);
   inputField.value = "";
-  const loadingDiv = appendMessage("bot", "EXECUTING...");
+  const loadingDiv = appendMessage("bot", "PROCESSING...");
 
   try {
     const response = await fetch("/api/chat", {
@@ -94,7 +94,7 @@ async function rexxSendMessage() {
     });
     const data = await response.json();
     if (data.choices) {
-        typeWriter(loadingDiv, data.choices[0].message.content);
+        renderBotResponse(loadingDiv, data.choices[0].message.content);
     }
   } catch (err) {
     loadingDiv.textContent = "FATAL ERROR.";
