@@ -1,1 +1,8 @@
-{ "name": "rexx-ai", "version": "1.0.0", "type": "module", "dependencies": { "@upstash/redis": "^1.25.0" } }
+{
+  "name": "unc-rx-weapon",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@upstash/redis": "^1.25.0"
+  }
+}
