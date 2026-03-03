@@ -1,49 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UNC RX</title>
-    <style>
-        body { background: #000; color: #00ff00; font-family: 'Courier New', monospace; margin: 0; padding: 20px; display: flex; flex-direction: column; height: 100vh; }
-        #messages { flex: 1; overflow-y: auto; border: 1px solid #00ff00; padding: 10px; margin-bottom: 10px; box-shadow: inset 0 0 10px #00ff00; }
-        .input-area { display: flex; gap: 10px; }
-        input { flex: 1; background: #000; border: 1px solid #00ff00; color: #00ff00; padding: 10px; outline: none; }
-        button { background: #00ff00; color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; }
-        .message { margin-bottom: 10px; padding: 5px; border-radius: 5px; }
-        .bot { color: #00ffff; }
-        .you { color: #fff; font-weight: bold; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Unc Rx</title>
+<style>
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #e5ddd5; margin: 0; }
+  #chat { max-width: 500px; margin: 20px auto; background: #fff; height: 90vh; display: flex; flex-direction: column; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 25px rgba(0,0,0,0.2); }
+  #messages { padding: 20px; flex: 1; overflow-y: auto; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
+  .message { margin-bottom: 12px; padding: 10px 15px; border-radius: 12px; max-width: 80%; font-size: 14px; position: relative; clear: both; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+  .user { background: #dcf8c6; float: right; border-top-right-radius: 0; }
+  .bot { background: #fff; float: left; border-top-left-radius: 0; }
+  #inputArea { display: flex; padding: 12px; background: #f0f0f0; border-top: 1px solid #ddd; }
+  #input { flex: 1; padding: 12px; border: none; border-radius: 25px; outline: none; font-size: 15px; }
+  #send { background: #128c7e; color: white; border: none; width: 45px; height: 45px; border-radius: 50%; margin-left: 10px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+  
+  /* TG Bot Style File Box */
+  .file-box { border: 1px solid #ddd; border-radius: 8px; padding: 10px; background: #f9f9f9; display: flex; align-items: center; gap: 10px; margin-top: 5px; }
+  .file-icon { font-size: 30px; color: #128c7e; }
+  .file-info { flex: 1; }
+  .file-name { font-weight: bold; font-size: 12px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; }
+  .dl-link { color: #007bff; text-decoration: none; font-size: 13px; font-weight: bold; }
+</style>
 </head>
 <body>
 
-<h2 style="text-align:center;">🛸 REXX MULTI-DOWNLOADER 4K</h2>
-<div id="messages"></div>
-<div class="input-area">
-    <input type="text" id="input" placeholder="Type message or paste link..." onkeypress="if(event.key==='Enter') processMsg()">
-    <button onclick="processMsg()">SEND</button>
+<div id="chat">
+  <div id="messages"></div>
+  <div id="inputArea">
+    <input id="input" placeholder="Paste link (YT/Insta) here..." onkeypress="if(event.key==='Enter') processMsg()">
+    <button id="send" onclick="processMsg()">➤</button>
+  </div>
 </div>
 
 <script>
-const messages = document.getElementById("messages");
+const messagesDiv = document.getElementById("messages");
 
-function addMessage(sender, text) {
+function addMessage(sender, text, isHTML = false) {
     const div = document.createElement("div");
-    div.className = "message " + (sender === "YOU" ? "you" : "bot");
-    div.innerHTML = `<strong>${sender}:</strong> ${text}`;
-    messages.appendChild(div);
-    messages.scrollTop = messages.scrollHeight;
+    div.className = `message ${sender === "YOU" ? "user" : "bot"}`;
+    if (isHTML) { div.innerHTML = text; } 
+    else { div.textContent = text; }
+    messagesDiv.appendChild(div);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
 async function processMsg() {
-    // 1. PASSWORD CHECK (Every 5 Msgs - Password: vcx)
+    // Password vcx (Every 5 msgs)
     if (typeof window.rexxCounter === 'undefined') { window.rexxCounter = 0; }
     if (window.rexxCounter % 5 === 0) {
-        let pass = prompt("🔐 REXX SECURITY: ENTER KEY 'vcx':");
-        if (!pass || pass.toLowerCase() !== "vcx") { 
-            alert("❌ ACCESS DENIED!"); 
-            return; 
-        }
+        let pass = prompt("🔐 Enter Key 'vcx':");
+        if (!pass || pass.toLowerCase() !== "vcx") return;
     }
     window.rexxCounter++;
 
@@ -54,27 +61,26 @@ async function processMsg() {
     addMessage("YOU", text);
     input.value = "";
 
-    // 2. DOWNLOADER LOGIC
-    const isLink = /^(https?:\/\/)/.test(text); 
-    if (isLink) {
-        addMessage("REXX-SYSTEM", "🛸 Extracting 4K Media Streams...");
-        const dlEngine = `https://api.vkrdownloader.com/server?varkey=default&url=${encodeURIComponent(text)}`;
+    // 1. DOWNLOADER LOGIC (TG BOT LOOK)
+    if (/^(https?:\/\/)/.test(text)) {
+        addMessage("BOT", "⏳ Extracting Media from Cloud...");
         
-        setTimeout(() => {
-            const botDiv = document.createElement("div");
-            botDiv.className = "message bot";
-            botDiv.innerHTML = `
-                <div style="border: 2px solid #00ff00; padding: 15px; border-radius: 10px; background: #000; box-shadow: 0 0 15px #00ff00; text-align: center;">
-                    <p style="color: #00ff00; font-weight: bold; font-size: 16px;">💎 REXX MEDIA CLOUD</p>
-                    <a href="${dlEngine}" target="_blank" style="display: block; background: #00ff00; color: #000; padding: 12px; text-decoration: none; font-weight: bold; border-radius: 5px; margin: 10px 0; border: 2px solid #fff;">📥 DOWNLOAD 4K/HD</a>
-                </div>`;
-            messages.appendChild(botDiv);
-            messages.scrollTop = messages.scrollHeight;
-        }, 1500);
-        return; 
+        const dlUrl = `https://api.vkrdownloader.com/server?varkey=default&url=${encodeURIComponent(text)}`;
+        
+        const fileHtml = `
+            <div class="file-box">
+                <div class="file-icon">📄</div>
+                <div class="file-info">
+                    <span class="file-name">REXX_MEDIA_4K.mp4</span>
+                    <a href="${dlUrl}" target="_blank" class="dl-link">⬇️ Click to Save File</a>
+                </div>
+            </div>`;
+        
+        setTimeout(() => addMessage("BOT", fileHtml, true), 1500);
+        return;
     }
 
-    // 3. AI CHAT LOGIC (Groq API)
+    // 2. AI LOGIC (Groq API)
     try {
         const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
@@ -83,16 +89,16 @@ async function processMsg() {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                model: "llama-3.3-70b-specdec",
+                model: "llama3-8b-8192",
                 messages: [{ role: "user", content: text }]
             })
         });
         const data = await response.json();
         if(data.choices) {
-            addMessage("REXX-AI", data.choices[0].message.content);
+            addMessage("BOT", data.choices[0].message.content);
         }
     } catch (err) {
-        addMessage("SYSTEM", "ERROR: API Connection Lost.");
+        addMessage("BOT", "❌ API Offline!");
     }
 }
 </script>
