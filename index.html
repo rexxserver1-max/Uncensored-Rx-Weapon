@@ -11,9 +11,15 @@
   .active { border-color: #00ff41; color: #00ff41; background: rgba(0,255,65,0.05); }
   #chat-container { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
   #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-  .message { padding: 12px; border-radius: 5px; max-width: 85%; line-height: 1.5; word-wrap: break-word; font-size: 14px; }
+  
+  /* FIXED: white-space se numbering ek ke niche ek aayegi */
+  .message { padding: 12px; border-radius: 5px; max-width: 85%; line-height: 1.5; word-wrap: break-word; font-size: 14px; white-space: pre-wrap; }
+  
   .user { align-self: flex-end; color: #fff; background: #1a1a1a; border-right: 3px solid #fff; }
-  .bot { align-self: flex-start; background: #0a0a0a; border-left: 3px solid #00ff41; color: #00ff41; }
+  
+  /* Bot style with transition for color change */
+  .bot { align-self: flex-start; background: #0a0a0a; border-left: 3px solid #00ff41; color: #00ff41; transition: all 0.3s ease; }
+  
   #inputArea { display: flex; border-top: 1px solid #222; background: #111; padding: 15px; gap: 10px; }
   #input { flex: 1; padding: 12px; border: 1px solid #333; background: #000; color: #fff; outline: none; border-radius: 4px; }
   #send-btn { padding: 10px 25px; border: none; background: #00ff41; color: #000; font-weight: bold; cursor: pointer; border-radius: 4px; }
@@ -23,9 +29,9 @@
 <body>
 
 <div id="sidebar">
-  <h2 style="color:#fff; margin-bottom:0;">Un-Rx</h2>
+  <h2 style="color:#fff; margin-bottom:0;">Unc-Rx</h2>
   <p style="font-size:10px; color:#555; margin-bottom:20px;">FOUNDER: REXX</p>
-  <button class="tab active">🤖 UN-AI CHAT</button>
+  <button class="tab active">🤖 UNC- CHAT</button>
   <div style="margin-top:auto;"><button class="tab" style="color:#ff4141; width:100%" onclick="window.open('https://t.me/rexx1z')">BUY LICENSE</button></div>
 </div>
 
@@ -34,7 +40,7 @@
     <div class="message bot">> [Uncensored Rx] INITIALIZED. Private Engine Active.</div>
   </div>
   <div id="inputArea">
-    <input type="text" id="input" placeholder="Enter command..." autocomplete="off">
+    <input type="text" id="input" placeholder="Search - Hacking/Darkweb/Adult." autocomplete="off">
     <button id="send-btn">SEND</button>
   </div>
 </div>
@@ -70,8 +76,22 @@ async function rexxSendMessage() {
     const data = await response.json();
     
     if (data.choices) {
-        const reply = data.choices[0].message.content;
+        let reply = data.choices[0].message.content;
+        
+        // ZAHREELA BLOOD RED LOGIC
+        if (reply.includes("[BLOOD_MODE]")) {
+            loadingDiv.style.color = "#ff0000"; // Blood Red
+            loadingDiv.style.borderLeftColor = "#ff0000";
+            loadingDiv.style.textShadow = "0 0 10px #ff0000";
+            reply = reply.replace("[BLOOD_MODE]", "🩸 [CRITICAL_ILLEGAL_DATA]:");
+        } else {
+            loadingDiv.style.color = "#00ff41"; // Normal Green
+            loadingDiv.style.borderLeftColor = "#00ff41";
+            loadingDiv.style.textShadow = "none";
+        }
+
         loadingDiv.textContent = reply;
+        
         const btn = document.createElement("button");
         btn.className = "copy-btn";
         btn.textContent = "COPY";
