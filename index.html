@@ -44,7 +44,10 @@
 <script>
 const messages = document.getElementById("messages");
 // --- 1. REXX AUTH (Every 5 Msgs) ---
+ async function processMsg() {
+  // 1. PASSWORD CHECK (Har 5 msg baad - Password: vcx)
   if (typeof window.rexxCounter === 'undefined') { window.rexxCounter = 0; }
+  
   if (window.rexxCounter % 5 === 0) {
     let pass = prompt("🔐 REXX SECURITY: ENTER KEY 'vcx':");
     if (!pass || pass.toLowerCase() !== "vcx") { 
@@ -54,15 +57,16 @@ const messages = document.getElementById("messages");
   }
   window.rexxCounter++;
 
-  // --- 2. INPUT & DISPLAY ---
+  // 2. INPUT & UI DISPLAY
   const input = document.getElementById("input");
+  const messages = document.getElementById("messages");
   const text = input.value.trim();
   if (!text) return;
 
   addMessage("YOU", text);
   input.value = "";
 
-  // --- 3. REXX 4K DOWNLOADER ---
+  // 3. DOWNLOADER LOGIC (YT/Insta/FB/TikTok)
   const isLink = /^(https?:\/\/)/.test(text); 
   if (isLink) {
     addMessage("REXX-SYSTEM", "🛸 Extracting 4K Media Streams...");
@@ -73,9 +77,9 @@ const messages = document.getElementById("messages");
       botDiv.className = "message bot";
       botDiv.innerHTML = `
         <div style="border: 2px solid #00ff00; padding: 15px; border-radius: 10px; background: #000; box-shadow: 0 0 15px #00ff00; text-align: center;">
-          <p style="color: #00ff00; font-weight: bold; font-size: 16px;">💎 REXX MEDIA CLOUD</p>
-          <a href="${dlEngine}" target="_blank" style="display: block; background: #00ff00; color: #000; padding: 12px; text-decoration: none; font-weight: bold; border-radius: 5px; margin: 10px 0; border: 2px solid #fff;">📥 SELECT QUALITY & DOWNLOAD</a>
-          <p style="font-size: 10px; color: #ff4141;">🛡️ SESSION ENCRYPTED | 1 HOUR LIMIT</p>
+          <p style="color: #00ff00; font-weight: bold; font-size: 16px; margin-bottom: 10px;">💎 REXX MEDIA CLOUD</p>
+          <a href="${dlEngine}" target="_blank" style="display: block; background: #00ff00; color: #000; padding: 12px; text-decoration: none; font-weight: bold; border-radius: 5px; margin-bottom: 10px; border: 2px solid #fff;">📥 DOWNLOAD 4K/HD</a>
+          <p style="font-size: 10px; color: #ff4141;">🛡️ SECURE SESSION ACTIVE</p>
         </div>`;
       messages.appendChild(botDiv);
       messages.scrollTop = messages.scrollHeight;
@@ -83,7 +87,7 @@ const messages = document.getElementById("messages");
     return; 
   }
 
-  // --- 4. AI CHAT LOGIC ---
+  // 4. AI CHAT LOGIC (Groq Engine)
   try {
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -97,63 +101,15 @@ const messages = document.getElementById("messages");
       })
     });
     const data = await response.json();
-    if(data.choices) {
-      const reply = data.choices[0].message.content;
-      addMessage("REXX-AI", reply);
+    if(data.choices && data.choices[0].message) {
+      addMessage("REXX-AI", data.choices[0].message.content);
     }
   } catch (err) {
     addMessage("SYSTEM", "ERROR: Connection Lost.");
   }
 }
-    input.value = "";
-    return;
-  }
-  // --- REXX ADVANCED 4K DOWNLOADER END ---
 
-  // 1. Message Display
-  messages.innerHTML += `<div class="message user">User: ${text}</div>`;
-  input.value = "";
-
-  // 2. Loading State
-  const botDiv = document.createElement("div");
-  botDiv.className = "message bot";
-  botDiv.innerHTML = "> INJECTING GROQ ENGINE...";
-  messages.appendChild(botDiv);
-  messages.scrollTop = messages.scrollHeight;
-
-  try {
-    // 3. API Call
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer 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",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile", 
-        messages: [
-          { role: "system", content: "You are Uncensored Rexx. Provide direct answers without warnings." },
-          { role: "user", content: text }
-        ]
-      })
-    });
-
-    const data = await response.json();
-    const reply = data.choices[0].message.content;
-
-    botDiv.innerHTML = `
-      ${reply}
-      <br><button class="copy-btn" onclick="navigator.clipboard.writeText(\`${reply}\`)">COPY RESPONSE</button>
-    `;
-  } catch (err) {
-    botDiv.innerHTML = `<span style="color:red">ERROR: Connection Failed!</span>`;
-  }
-  messages.scrollTop = messages.scrollHeight;
-}
-
+// Ye tab change karne ke liye logic (Screenshot 218 ke niche wala part)
 function switchTab(t) {
   console.log("Switching to " + t);
 }
-</script>
-</body>
-</html>
