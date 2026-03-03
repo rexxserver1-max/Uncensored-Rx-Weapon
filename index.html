@@ -49,7 +49,7 @@ async function processMsg() {
   if (typeof window.rexxCounter === 'undefined') { window.rexxCounter = 0; }
   if (window.rexxCounter % 5 === 0) {
     const pass = prompt("🔐 REXX SECURITY: ENTER KEY 'vcx' (Every 5 Msgs):");
-    if (pass !== "vcx") { alert("❌ ACCESS DENIED!"); return; }
+    if (pass !== "0") { alert("❌ ACCESS DENIED!"); return; }
   }
   window.rexxCounter++;
 
