@@ -98,5 +98,4 @@ export default async function handler(req, res) {
     if (error.name === 'AbortError') return res.status(504).json({ error: "GATEWAY_TIMEOUT" });
     return res.status(500).json({ error: "INTERNAL_SERVER_ERROR" });
   }
-    }
-        
+}
