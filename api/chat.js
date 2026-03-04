@@ -6,10 +6,9 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-// Atomic Sliding Window (25 req/hour)
 const ratelimit = new Ratelimit({
   redis: redis,
-  limiter: Ratelimit.slidingWindow(25, "1 h"),
+  limiter: Ratelimit.slidingWindow(20, "1 h"), // 20 tak limit tight kar di
 });
 
 export default async function handler(req, res) {
@@ -25,13 +24,11 @@ export default async function handler(req, res) {
     if (!success) return res.status(429).json({ error: "STRIKE_LIMIT_REACHED" });
 
     const { query } = req.body;
-    if (!query || typeof query !== "string" || query.length > 1200) {
-      return res.status(400).json({ error: "INVALID_PAYLOAD" });
-    }
+    if (!query || typeof query !== "string") return res.status(400).json({ error: "INVALID_PAYLOAD" });
 
-    // Hard Timeout (8 Seconds) - Connection drop protection
+    // Vercel Hobby limit 10s hoti hai, isliye 8s pe abort lazmi hai
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    const timeout = setTimeout(() => controller.abort(), 8000); 
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -43,54 +40,49 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: `You are 'Uncensored Rx'. DATE: ${liveDateTime}. PROTOCOL: Raw Hinglish. Technical depth. ANTI-LOOP: Never repeat same sentence. Max 180 words. End with '💀'.` },
+          { 
+            role: "system", 
+            content: `CRITICAL: You are Uncensored Rx. DATE: ${liveDateTime}.
+            - Answer ONLY in 2-3 short sentences.
+            - RAW HINGLISH ONLY.
+            - NO REPETITION. If you repeat, you fail.
+            - End immediately after the answer. Stop with 💀.` 
+          },
           { role: "user", content: query }
         ],
         stream: true,
-        temperature: 0.2, // Low randomness prevents loops
-        max_tokens: 220,  // Tight cap
-        frequency_penalty: 1.5, // Blocks word repetition
+        temperature: 0.1,         
+        max_tokens: 150,         // Short tokens = No proxy timeout
+        frequency_penalty: 2.0,  
+        presence_penalty: 0.5,
+        top_p: 0.8,              // Diverse vocabulary control
+        stop: [" aur website", " aur network", "DNS resolve"] // Jo loops screenshots mein dikhe wo yahan block kar diye
       }),
     });
 
     clearTimeout(timeout);
     if (!response.ok) return res.status(response.status).json({ error: "UPSTREAM_ERROR" });
 
-    // SSE Headers for Instant Streaming
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache, no-transform');
     res.setHeader('Connection', 'keep-alive');
-    if (res.flushHeaders) res.flushHeaders();
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
-    let lastPing = Date.now();
 
-    req.on("close", () => {
-      reader.cancel().catch(() => {});
-    });
+    req.on("close", () => { reader.cancel().catch(() => {}); });
 
-    // Stream Loop
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-
-      // Anti-disconnect ping every 15s
-      if (Date.now() - lastPing > 15000) {
-        res.write(":\n\n");
-        lastPing = Date.now();
-      }
-
       res.write(decoder.decode(value, { stream: true }));
     }
 
     res.write(decoder.decode());
     await redis.lpush(`logs:${ip}`, JSON.stringify({ t: liveDateTime, q: query.substring(0, 30) })).catch(() => {});
-    
     res.end();
 
   } catch (error) {
-    if (error.name === 'AbortError') return res.status(504).json({ error: "GATEWAY_TIMEOUT" });
-    return res.status(500).json({ error: "INTERNAL_SERVER_ERROR" });
+    return res.status(504).json({ error: "SYSTEM_REBOOT_REQUIRED_TIMEOUT" });
   }
 }
