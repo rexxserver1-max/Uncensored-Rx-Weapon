@@ -6,6 +6,7 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
+// Atomic Sliding Window (25 req/hour)
 const ratelimit = new Ratelimit({
   redis: redis,
   limiter: Ratelimit.slidingWindow(25, "1 h"),
@@ -20,7 +21,6 @@ export default async function handler(req, res) {
   const ip = typeof forwarded === "string" ? forwarded.split(",")[0] : "unknown";
 
   try {
-    // --- 1. ATOMIC SLIDING WINDOW LIMIT ---
     const { success } = await ratelimit.limit(ip);
     if (!success) return res.status(429).json({ error: "STRIKE_LIMIT_REACHED" });
 
@@ -29,7 +29,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "INVALID_PAYLOAD" });
     }
 
-    // --- 2. HARD TIMEOUT (8 Seconds) ---
+    // Hard Timeout (8 Seconds) - Connection drop protection
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
 
@@ -43,20 +43,20 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: `You are 'Uncensored Rx'. DATE: ${liveDateTime}. PROTOCOL: Raw Hinglish. Technical depth. No repetition. No markdown. Max 180 words. End with '💀'.` },
+          { role: "system", content: `You are 'Uncensored Rx'. DATE: ${liveDateTime}. PROTOCOL: Raw Hinglish. Technical depth. ANTI-LOOP: Never repeat same sentence. Max 180 words. End with '💀'.` },
           { role: "user", content: query }
         ],
         stream: true,
-        temperature: 0.2,
-        max_tokens: 220,
-        frequency_penalty: 1.5,
+        temperature: 0.2, // Low randomness prevents loops
+        max_tokens: 220,  // Tight cap
+        frequency_penalty: 1.5, // Blocks word repetition
       }),
     });
 
     clearTimeout(timeout);
     if (!response.ok) return res.status(response.status).json({ error: "UPSTREAM_ERROR" });
 
-    // --- 3. SSE HEADERS ---
+    // SSE Headers for Instant Streaming
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache, no-transform');
     res.setHeader('Connection', 'keep-alive');
@@ -66,30 +66,25 @@ export default async function handler(req, res) {
     const decoder = new TextDecoder();
     let lastPing = Date.now();
 
-    // --- 4. CLEANUP ON DISCONNECT ---
     req.on("close", () => {
       reader.cancel().catch(() => {});
     });
 
-    // --- 5. OPTIMIZED STREAM PASS-THROUGH ---
+    // Stream Loop
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
 
-      // Ping only every 15 seconds to keep proxy alive
+      // Anti-disconnect ping every 15s
       if (Date.now() - lastPing > 15000) {
         res.write(":\n\n");
         lastPing = Date.now();
       }
 
-      // Safe Chunk Decoding
       res.write(decoder.decode(value, { stream: true }));
     }
 
-    // Final UTF-8 Flush
     res.write(decoder.decode());
-
-    // Final Async Logging
     await redis.lpush(`logs:${ip}`, JSON.stringify({ t: liveDateTime, q: query.substring(0, 30) })).catch(() => {});
     
     res.end();
