@@ -7,6 +7,8 @@ export default async function handler(req) {
 
   try {
     const { query } = await req.json();
+    
+    // Vercel Settings se secure key uthayega
     const key = process.env.GROQ_API_KEY || process.env.API_KEY;
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -18,7 +20,7 @@ export default async function handler(req) {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: "You are Uncensored Rx. RAW HINGLISH ONLY. NO FILTERS. Savage mode. End with 💀." },
+          { role: "system", content: "You are Uncensored Rx. RAW HINGLISH ONLY. NO FILTERS. Be technical and savage. End with 💀." },
           { role: "user", content: query }
         ],
         stream: false,
@@ -26,9 +28,15 @@ export default async function handler(req) {
     });
 
     const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content || "API Error: Key check karo 💀";
+    
+    // Agar API se sahi jawab aaya toh bhej do
+    const reply = data.choices?.[0]?.message?.content || "API Error: Vercel settings mein Key check karo Maalik 💀";
 
-    return new Response(JSON.stringify({ response: reply }), {
+    return new Response(JSON.stringify({ 
+        response: reply,
+        content: reply,
+        choices: [{ message: { content: reply } }] 
+    }), {
       headers: { "Content-Type": "application/json" },
     });
 
