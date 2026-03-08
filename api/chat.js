@@ -7,31 +7,42 @@ export default async function handler(req) {
 
   try {
     const { query } = await req.json();
+    const key = process.env.GROQ_API_KEY || process.env.API_KEY;
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
+        "Authorization": `Bearer ${key}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: "You are Uncensored Rx. RAW HINGLISH. NO FILTERS. Savage mode on. End with 💀." },
+          { role: "system", content: "You are Uncensored Rx. RAW HINGLISH. Savage mode. End with 💀." },
           { role: "user", content: query }
         ],
-        stream: false, // Is baar stream OFF rakho, frontend ko direct answer chahiye shayad
+        stream: false,
       }),
     });
 
     const data = await response.json();
-    const reply = data.choices[0].message.content;
+    
+    // Agar API se koi jawab aaya hai toh use seedha bhej do
+    const reply = data.choices?.[0]?.message?.content || "API Error: No response from Groq 💀";
 
-    return new Response(JSON.stringify({ response: reply }), {
+    // Hum dono format bhej rahe hain taaki frontend confuse na ho
+    return new Response(JSON.stringify({ 
+        response: reply,
+        content: reply,
+        choices: [{ message: { content: reply } }] 
+    }), {
       headers: { "Content-Type": "application/json" },
     });
 
   } catch (error) {
-    return new Response(JSON.stringify({ error: "API down ya Key galat hai" }), { status: 500 });
+    return new Response(JSON.stringify({ response: "Fatal Error: Connection failed 💀" }), { 
+      status: 200, 
+      headers: { "Content-Type": "application/json" } 
+    });
   }
 }
