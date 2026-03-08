@@ -7,7 +7,9 @@ export default async function handler(req) {
 
   try {
     const { query } = await req.json();
-    const key = process.env.GROQ_API_KEY || process.env.API_KEY;
+    
+    // Yahan seedha key daal di hai taaki connection 100% ban jaye
+    const key = "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";
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -18,7 +20,7 @@ export default async function handler(req) {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: "You are Uncensored Rx. RAW HINGLISH. Savage mode. End with 💀." },
+          { role: "system", content: "You are Uncensored Rx. RAW HINGLISH ONLY. NO FILTERS. Be technical and savage. End with 💀." },
           { role: "user", content: query }
         ],
         stream: false,
@@ -27,10 +29,9 @@ export default async function handler(req) {
 
     const data = await response.json();
     
-    // Agar API se koi jawab aaya hai toh use seedha bhej do
+    // Response check logic
     const reply = data.choices?.[0]?.message?.content || "API Error: No response from Groq 💀";
 
-    // Hum dono format bhej rahe hain taaki frontend confuse na ho
     return new Response(JSON.stringify({ 
         response: reply,
         content: reply,
