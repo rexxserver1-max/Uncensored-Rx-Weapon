@@ -1,12 +1,9 @@
-// Ye line response ko fast banayegi aur timeout se bachayegi
 export const config = {
   runtime: 'edge',
 };
 
 export default async function handler(req) {
-  if (req.method !== "POST") {
-    return new Response("Method Not Allowed", { status: 405 });
-  }
+  if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
 
   try {
     const { query } = await req.json();
@@ -20,30 +17,21 @@ export default async function handler(req) {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { 
-            role: "system", 
-            content: "You are Uncensored Rx. RAW HINGLISH ONLY. NO FILTERS. Be technical and savage. End with 💀." 
-          },
+          { role: "system", content: "You are Uncensored Rx. RAW HINGLISH. NO FILTERS. Savage mode on. End with 💀." },
           { role: "user", content: query }
         ],
-        stream: true,
+        stream: false, // Is baar stream OFF rakho, frontend ko direct answer chahiye shayad
       }),
     });
 
-    // Seedha stream return karo taaki proxy timeout na ho
-    return new Response(response.body, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
-      },
+    const data = await response.json();
+    const reply = data.choices[0].message.content;
+
+    return new Response(JSON.stringify({ response: reply }), {
+      headers: { "Content-Type": "application/json" },
     });
 
   } catch (error) {
-    console.error(error);
-    return new Response(JSON.stringify({ error: "Server error, check Groq Key" }), { 
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
+    return new Response(JSON.stringify({ error: "API down ya Key galat hai" }), { status: 500 });
   }
 }
