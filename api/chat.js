@@ -8,8 +8,8 @@ export default async function handler(req) {
   try {
     const { query } = await req.json();
     
-    // Yahan seedha key daal di hai taaki connection 100% ban jaye
-    const key = "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";
+    // Vercel Settings se secure key uthayega
+    const key = process.env.GROQ_API_KEY || process.env.API_KEY;
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -29,8 +29,8 @@ export default async function handler(req) {
 
     const data = await response.json();
     
-    // Response check logic
-    const reply = data.choices?.[0]?.message?.content || "API Error: No response from Groq 💀";
+    // Agar API se sahi jawab aaya toh bhej do
+    const reply = data.choices?.[0]?.message?.content || "API Error: Vercel settings mein Key check karo Maalik 💀";
 
     return new Response(JSON.stringify({ 
         response: reply,
