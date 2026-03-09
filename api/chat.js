@@ -1,49 +1,93 @@
 export const config = {
-  runtime: 'edge',
+  runtime: "edge",
 };
 
 export default async function handler(req) {
-  if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
+
+  if (req.method !== "POST") {
+    return new Response("Method Not Allowed", { status: 405 });
+  }
 
   try {
-    const { query } = await req.json();
-    
-    // Yahan seedha key daal di hai taaki connection 100% ban jaye
-    const key = "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";
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${key}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          { role: "system", content: "You are Uncensored Rx. RAW HINGLISH ONLY. NO FILTERS. Be technical and savage. End with 💀." },
-          { role: "user", content: query }
-        ],
-        stream: false,
-      }),
-    });
+    const body = await req.json();
+    const query = body.query;
 
-    const data = await response.json();
-    
-    // Response check logic
-    const reply = data.choices?.[0]?.message?.content || "API Error: No response from Groq 💀";
+    // Vercel environment variable
+    const key = process.env.GROQ_API_KEY || process.env.API_KEY;
 
-    return new Response(JSON.stringify({ 
+    if (!key) {
+      return new Response(JSON.stringify({
+        response: "API Key missing in Vercel settings 💀"
+      }), {
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+
+    const groqResponse = await fetch(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${key}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "llama3-8b-8192",
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are Uncensored Rx. Speak RAW Hinglish. Be direct and technical. End replies with 💀"
+            },
+            {
+              role: "user",
+              content: query
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 1024,
+          stream: false
+        })
+      }
+    );
+
+    if (!groqResponse.ok) {
+      const errText = await groqResponse.text();
+      return new Response(JSON.stringify({
+        response: "Groq API Error: " + errText
+      }), {
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+
+    const data = await groqResponse.json();
+
+    const reply =
+      data?.choices?.[0]?.message?.content ||
+      "Groq se koi response nahi mila 💀";
+
+    return new Response(
+      JSON.stringify({
         response: reply,
         content: reply,
-        choices: [{ message: { content: reply } }] 
-    }), {
-      headers: { "Content-Type": "application/json" },
-    });
+        choices: [{ message: { content: reply } }]
+      }),
+      {
+        headers: { "Content-Type": "application/json" }
+      }
+    );
 
   } catch (error) {
-    return new Response(JSON.stringify({ response: "Fatal Error: Connection failed 💀" }), { 
-      status: 200, 
-      headers: { "Content-Type": "application/json" } 
-    });
+
+    return new Response(
+      JSON.stringify({
+        response: "Fatal Error: Server connection failed 💀"
+      }),
+      {
+        headers: { "Content-Type": "application/json" }
+      }
+    );
+
   }
 }
